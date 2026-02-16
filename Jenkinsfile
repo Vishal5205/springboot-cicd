@@ -9,7 +9,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/Vishal5205/springboot-cicd.git'
+                git branch: 'main', url: 'https://github.com/Vishal5205/springboot-cicd.git'
             }
         }
 
