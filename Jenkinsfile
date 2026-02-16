@@ -42,7 +42,7 @@ pipeline {
                     docker stop springboot || true
                     docker rm springboot || true
                     docker pull $IMAGE
-                    docker run -d --name springboot -p 8080:8080 $IMAGE
+                    docker run -d --name springboot -p 8090:8080 $IMAGE
                 '''
             }
         }
