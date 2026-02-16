@@ -26,24 +26,29 @@ pipeline {
         }
 
         stage('Docker Push') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-            sh '''
-                echo $PASS | docker login -u $USER --password-stdin
-                docker push $IMAGE
-            '''
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'USER',
+                        passwordVariable: 'PASS'
+                    )
+                ]) {
+                    sh '''
+                      echo $PASS | docker login -u $USER --password-stdin
+                      docker push $IMAGE
+                    '''
+                }
+            }
         }
-    }
-}
-
 
         stage('Auto Deploy') {
             steps {
                 sh '''
-                    docker stop springboot || true
-                    docker rm springboot || true
-                    docker pull $IMAGE
-                    docker run -d --name springboot -p 8090:8080 $IMAGE
+                  docker stop springboot || true
+                  docker rm springboot || true
+                  docker pull $IMAGE
+                  docker run -d --name springboot -p 8090:8080 $IMAGE
                 '''
             }
         }
