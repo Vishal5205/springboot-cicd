@@ -7,12 +7,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Vishal5205/springboot-cicd.git'
-            }
-        }
-
         stage('Build') {
             steps {
                 sh './mvnw clean package'
@@ -27,10 +21,13 @@ pipeline {
 
         stage('Docker Push') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
-                usernameVariable: 'USER',
-                passwordVariable: 'PASS')]) {
-
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'USER',
+                        passwordVariable: 'PASS'
+                    )
+                ]) {
                     sh '''
                         echo $PASS | docker login -u $USER --password-stdin
                         docker push $IMAGE
