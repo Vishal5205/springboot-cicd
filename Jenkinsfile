@@ -13,9 +13,9 @@ pipeline {
             }
         }
 
-        stage('Build Jar') {
+        stage('Build') {
             steps {
-                sh 'mvn clean package'
+                sh './mvnw clean package'
             }
         }
 
@@ -27,28 +27,24 @@ pipeline {
 
         stage('Docker Push') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-creds',
-                        usernameVariable: 'USER',
-                        passwordVariable: 'PASS'
-                    )
-                ]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
+                usernameVariable: 'USER',
+                passwordVariable: 'PASS')]) {
+
                     sh '''
-                      echo $PASS | docker login -u $USER --password-stdin
-                      docker push $IMAGE
+                        echo $PASS | docker login -u $USER --password-stdin
+                        docker push $IMAGE
                     '''
                 }
             }
         }
 
-        stage('Auto Deploy') {
+        stage('Deploy to K8s') {
             steps {
                 sh '''
-                  docker stop springboot || true
-                  docker rm springboot || true
-                  docker pull $IMAGE
-                  docker run -d --name springboot -p 8090:8080 $IMAGE
+                    kubectl delete deployment springboot || true
+                    kubectl create deployment springboot --image=$IMAGE
+                    kubectl expose deployment springboot --type=NodePort --port=80 --target-port=8080 || true
                 '''
             }
         }
