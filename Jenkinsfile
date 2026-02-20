@@ -7,6 +7,12 @@ pipeline {
 
     stages {
 
+        stage('Fix Permission') {
+            steps {
+                sh 'chmod +x mvnw'
+            }
+        }
+
         stage('Build Jar') {
             steps {
                 sh './mvnw clean package'
