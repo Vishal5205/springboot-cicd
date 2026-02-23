@@ -2,51 +2,42 @@ pipeline {
     agent any
 
     environment {
-        IMAGE = "vishal1326/springboot-cicd:latest"
+        IMAGE_NAME = "vishal1326/springboot-cicd"
+        DOCKER_CREDS = "dockerhub-creds"
     }
 
     stages {
 
-        stage('Fix Permission') {
+        stage('Checkout') {
             steps {
-                sh 'chmod +x mvnw'
+                git 'https://github.com/Vishal5205/springboot-cicd.git'
             }
         }
 
-        stage('Build Jar') {
+        stage('Build Maven') {
             steps {
-                sh 'mvnw clean package'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Docker Build') {
+        stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE .'
+                sh "docker build -t $IMAGE_NAME:${BUILD_NUMBER} ."
             }
         }
 
-        stage('Docker Push') {
+        stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
-                )]) {
+                withCredentials([usernamePassword(credentialsId: DOCKER_CREDS,
+                usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+
                     sh '''
-                      echo $PASS | docker login -u $USER --password-stdin
-                      docker push $IMAGE
+                    echo $PASS | docker login -u $USER --password-stdin
+                    docker push $IMAGE_NAME:${BUILD_NUMBER}
+                    docker tag $IMAGE_NAME:${BUILD_NUMBER} $IMAGE_NAME:latest
+                    docker push $IMAGE_NAME:latest
                     '''
                 }
-            }
-        }
-
-        stage('Run Container') {
-            steps {
-                sh '''
-                  docker stop springboot || true
-                  docker rm springboot || true
-                  docker run -d --name springboot -p 8090:8080 $IMAGE
-                '''
             }
         }
     }
