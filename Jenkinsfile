@@ -8,12 +8,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/Vishal5205/springboot-cicd.git'
-            }
-        }
-
         stage('Build Maven') {
             steps {
                 sh 'mvn clean package -DskipTests'
