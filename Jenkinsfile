@@ -4,13 +4,19 @@ pipeline {
     environment {
         IMAGE_NAME = "vishal1326/springboot-cicd"
         DOCKER_CREDS = "dockerhub-creds"
+        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
     }
 
     stages {
 
         stage('Build Maven') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh '''
+                java -version
+                mvn -version
+                mvn clean package -DskipTests
+                '''
             }
         }
 
