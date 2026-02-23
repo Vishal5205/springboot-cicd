@@ -1,41 +1,37 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven-3.9.6'
+    }
+
     environment {
-        IMAGE_NAME = "vishal1326/springboot-cicd"
-        DOCKER_CREDS = "dockerhub-creds"
-        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
-        PATH = "${JAVA_HOME}/bin:${env.PATH}"
+        IMAGE = "vishal1326/springboot-cicd"
     }
 
     stages {
 
-        stage('Build Maven') {
+        stage('Build') {
             steps {
-                sh '''
-                java -version
-                mvn -version
-                mvn clean package -DskipTests
-                '''
+                sh 'mvn -version'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Docker Build') {
             steps {
-                sh "docker build -t $IMAGE_NAME:${BUILD_NUMBER} ."
+                sh 'docker build -t $IMAGE:latest .'
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Docker Push') {
             steps {
-                withCredentials([usernamePassword(credentialsId: DOCKER_CREDS,
-                usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
+                usernameVariable: 'U', passwordVariable: 'P')]) {
 
                     sh '''
-                    echo $PASS | docker login -u $USER --password-stdin
-                    docker push $IMAGE_NAME:${BUILD_NUMBER}
-                    docker tag $IMAGE_NAME:${BUILD_NUMBER} $IMAGE_NAME:latest
-                    docker push $IMAGE_NAME:latest
+                    echo $P | docker login -u $U --password-stdin
+                    docker push $IMAGE:latest
                     '''
                 }
             }
