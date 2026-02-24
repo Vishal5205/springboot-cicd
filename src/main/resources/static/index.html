@@ -1,35 +1,412 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>DevOps CI/CD</title>
-    <style>
-        body {
-            background: #0f172a;
-            color: white;
-            font-family: Arial;
-            text-align: center;
-            padding-top: 120px;
-        }
-        h1 {
-            color: #22c55e;
-            font-size: 48px;
-        }
-        p {
-            font-size: 24px;
-        }
-        .box {
-            margin: auto;
-            width: 60%;
-            padding: 30px;
-        }
-    </style>
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CI/CD Pipeline — Vishal S</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --green: #00ff87;
+      --blue: #0ea5e9;
+      --bg: #060a0f;
+      --surface: #0d1520;
+      --border: rgba(0,255,135,0.15);
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,135,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,135,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(0,255,135,0.11), transparent 70%);
+      top: -120px; left: -120px;
+      animation: drift1 13s ease-in-out infinite alternate;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(14,165,233,0.09), transparent 70%);
+      bottom: -60px; right: -60px;
+      animation: drift2 16s ease-in-out infinite alternate;
+    }
+    @keyframes drift1 { to { transform: translate(60px, 80px); } }
+    @keyframes drift2 { to { transform: translate(-60px, -40px); } }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    /* STATUS BAR */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 64px;
+      opacity: 0;
+      animation: fadeDown 0.6s ease forwards;
+    }
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,255,135,0.08);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 6px 16px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--green);
+    }
+    .dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .build-info {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* HERO */
+    .hero { text-align: center; margin-bottom: 72px; }
+    .hero-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.2s ease forwards;
+    }
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(40px, 7vw, 76px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.35s ease forwards;
+    }
+    .hero h1 .gradient {
+      display: block;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.7;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.5s ease forwards;
+    }
+
+    /* PIPELINE */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0;
+      margin-bottom: 72px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.65s ease forwards;
+    }
+    .pipe-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 22px 18px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      min-width: 120px;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+      cursor: default;
+    }
+    .pipe-step:hover {
+      border-color: var(--green);
+      transform: translateY(-6px);
+      box-shadow: 0 0 28px rgba(0,255,135,0.13);
+    }
+    .pipe-step .icon {
+      width: 52px; height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .pipe-step .icon img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+    .pipe-step .label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .pipe-step .name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .s-github .icon  { background: rgba(255,255,255,0.06); }
+    .s-jenkins .icon { background: rgba(215,83,53,0.12); }
+    .s-docker .icon  { background: rgba(36,150,237,0.12); }
+    .s-k8s .icon     { background: rgba(50,108,229,0.12); }
+    .s-argo .icon    { background: rgba(239,123,77,0.12); }
+
+    .arrow {
+      font-size: 20px;
+      color: var(--green);
+      opacity: 0.45;
+      padding: 0 6px;
+      flex-shrink: 0;
+    }
+
+    /* STATS */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 64px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.8s ease forwards;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 20px;
+      text-align: center;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .stat-card:hover {
+      border-color: rgba(0,255,135,0.4);
+      box-shadow: 0 0 20px rgba(0,255,135,0.07);
+    }
+    .stat-card .num {
+      font-family: 'Syne', sans-serif;
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--green);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-card .desc {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.95s ease forwards;
+    }
+    .credit-card {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 56px;
+    }
+    .credit-card .role {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .credit-card .name {
+      font-family: 'Syne', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .credit-card .tag {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 680px) {
+      .arrow { display: none; }
+      .pipe-step { min-width: 90px; padding: 16px 12px; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
 <body>
-<div class="box">
-    <h1> Production CI/CD Working</h1>
-    <p>GitHub → Jenkins → Docker → Kubernetes → Argo CD</p>
-    <p>Deployed Automatically</p>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="wrapper">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="badge">
+      <span class="dot"></span>
+      PIPELINE ACTIVE
+    </div>
+    <div class="build-info">BUILD #001 &nbsp;·&nbsp; MAIN BRANCH &nbsp;·&nbsp; SUCCESS</div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">✦ Production Deployment</div>
+    <h1>
+      CI/CD Pipeline
+      <span class="gradient">Fully Operational</span>
+    </h1>
+    <p>A complete DevOps pipeline from source code to live production — automated, containerized, and orchestrated.</p>
+  </div>
+
+  <!-- PIPELINE FLOW -->
+  <div class="pipeline">
+
+    <div class="pipe-step s-github">
+      <div class="icon">
+        <img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub" />
+      </div>
+      <div class="label">Source</div>
+      <div class="name">GitHub</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <div class="pipe-step s-jenkins">
+      <div class="icon">
+        <img src="https://cdn.simpleicons.org/jenkins/D75335" alt="Jenkins" />
+      </div>
+      <div class="label">Build</div>
+      <div class="name">Jenkins</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <div class="pipe-step s-docker">
+      <div class="icon">
+        <img src="https://cdn.simpleicons.org/docker/2496ED" alt="Docker" />
+      </div>
+      <div class="label">Registry</div>
+      <div class="name">Docker</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <div class="pipe-step s-k8s">
+      <div class="icon">
+        <img src="https://cdn.simpleicons.org/kubernetes/326CE5" alt="Kubernetes" />
+      </div>
+      <div class="label">Orchestrate</div>
+      <div class="name">Kubernetes</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <div class="pipe-step s-argo">
+      <div class="icon">
+        <img src="https://cdn.simpleicons.org/argo/EF7B4D" alt="Argo CD" />
+      </div>
+      <div class="label">GitOps CD</div>
+      <div class="name">Argo CD</div>
+    </div>
+
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="num">100%</div>
+      <div class="desc">Automated Deploy</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">2</div>
+      <div class="desc">Servers Used</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">5</div>
+      <div class="desc">Tools Integrated</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="credit-card">
+      <div class="role">Project Done By</div>
+      <div class="name">Vishal S</div>
+      <div class="tag">DevOps &nbsp;·&nbsp; CI/CD &nbsp;·&nbsp; Spring Boot on Kubernetes</div>
+    </div>
+  </div>
+
 </div>
 </body>
 </html>
