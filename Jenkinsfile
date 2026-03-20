@@ -6,8 +6,7 @@ pipeline {
     }
 
     environment {
-        IMAGE = "vishal1326/springboot-cicd"
-        
+        IMAGE = "vishal1326/springboot-cicd"   
     }
 
     stages {
