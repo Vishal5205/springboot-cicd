@@ -39,27 +39,9 @@ pipeline {
             }
         }
 
-        stage('Update GitOps Repo') {
+        stage( 'Deploy to Kubernetes' ) {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'github-creds',
-                usernameVariable: 'GU', passwordVariable: 'GP')]) {
-
-                    sh """
-                    rm -rf springboot-k8s
-                    git clone https://\$GU:\$GP@github.com/Vishal5205/springboot-k8s.git
-                    cd springboot-k8s
-
-                    sed -i "s|image:.*|image: $IMAGE:${BUILD_NUMBER}|" deployment.yaml
-
-                    git config user.email "jenkins@devops.com"
-                    git config user.name "jenkins"
-
-                    git add deployment.yaml
-                    git commit -m "Update image to $IMAGE:${BUILD_NUMBER}"
-                    git push
-                    """
-                }
+                sh 'kubectl apply -f k8s/'
             }
         }
     }
-}
