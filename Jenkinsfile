@@ -6,7 +6,8 @@ pipeline {
     }
 
     environment {
-        IMAGE = "vishal1326/springboot-cicd"   
+        IMAGE = "vishal1326/springboot-cicd"
+        KUBECONFIG = "/var/lib/jenkins/kubeconfig"
     }
 
     stages {
