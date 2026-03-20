@@ -28,7 +28,7 @@ pipeline {
 
         stage( 'Trivy Scan') {
             steps {
-                sh 'trivy image vishal1326/springboot-cicd:${VUILD_NUMBER}'
+                sh 'trivy image vishal1326/springboot-cicd:${BUILD_NUMBER}'
             }
         }
 
