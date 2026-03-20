@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         IMAGE = "vishal1326/springboot-cicd"
-        GITOPS_REPO = "https://github.com/Vishal5205/springboot-k8s.git"
+        GITOPS_REPO = "https://github.com/Vishal5205/springboot-cicd.git"
     }
 
     stages {
