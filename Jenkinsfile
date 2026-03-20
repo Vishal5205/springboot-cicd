@@ -26,6 +26,12 @@ pipeline {
             }
         }
 
+        stage( 'Trivy Scan') {
+            steps {
+                sh 'trivy image vishal1326/springboot-cicd:${VUILD_NUMBER}'
+            }
+        }
+
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
